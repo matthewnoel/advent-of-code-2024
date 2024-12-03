@@ -23,7 +23,8 @@ pub fn part1() -> Result<u32, AdventError> {
     let contents = fs::read_to_string("./src/input.txt")?;
     let mut safe_reports = 0;
     for line in contents.lines() {
-        if is_report_safe(line)? {
+        let parsed = parse_report(line)?;
+        if is_report_safe(parsed)? {
             safe_reports += 1;
         }
     }
@@ -38,12 +39,11 @@ fn parse_report(report: &str) -> Result<Vec<i32>, AdventError> {
     Ok(report_vec)
 }
 
-fn is_report_safe(report: &str) -> Result<bool, AdventError> {
-    let report_vec = parse_report(report)?;
+fn is_report_safe(report: Vec<i32>) -> Result<bool, AdventError> {
     let mut optional_previous_value: Option<i32> = Option::None;
     let mut optional_direction = Option::<bool>::None;
 
-    for value in &report_vec {
+    for value in &report {
         if let Some(previous_value) = optional_previous_value {
             if previous_value == *value {
                 return Ok(false);
@@ -66,5 +66,25 @@ fn is_report_safe(report: &str) -> Result<bool, AdventError> {
 }
 
 pub fn part2() -> Result<u32, AdventError> {
-    Ok(0)
+    let contents = fs::read_to_string("./src/input.txt")?;
+    let mut safe_reports = 0;
+    for line in contents.lines() {
+        let parsed = parse_report(line)?;
+        if is_any_version_of_report_safe(parsed)? {
+            safe_reports += 1;
+        }
+    }
+    Ok(safe_reports)
+}
+
+fn is_any_version_of_report_safe(report: Vec<i32>) -> Result<bool, AdventError> {
+    // stupid solution, but my other strategies weren't working
+    for i in 0..report.len() {
+        let mut modified_report = report.clone();
+        modified_report.remove(i);
+        if is_report_safe(modified_report)? {
+            return Ok(true);
+        }
+    }
+    Ok(false)
 }

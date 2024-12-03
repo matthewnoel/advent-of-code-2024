@@ -6,6 +6,6 @@ fn main() -> Result<(), AdventError> {
     print!("Part 1: {}\n", answer1);
     let answer2 = day_2::part2()?;
     print!("Part 2: {}\n", answer2);
-    // assert_eq!(answer2, 26674158);
+    assert_eq!(answer2, 674);
     Ok(())
 }
