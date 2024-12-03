@@ -39,9 +39,11 @@ fn get_numbers_from_obj(obj: &Vec<char>) -> (u32, u32) {
     (number_one, number_two)
 }
 
-fn increment_total(obj: &mut Vec<char>, total: &mut u32) {
+fn increment_total(obj: &mut Vec<char>, total: &mut u32, enabled: bool) {
     let (number_one, number_two) = get_numbers_from_obj(obj);
-    *total += number_one * number_two;
+    if enabled {
+        *total += number_one * number_two;
+    }
     reset_temp_object(obj);
 }
 
@@ -56,7 +58,7 @@ fn try_add_character(c: char, obj: &mut Vec<char>) -> Option<bool> {
                 obj.push(c);
             }
             return None;
-        },
+        }
         1 => {
             if c == 'u' {
                 obj.push(c);
@@ -64,7 +66,7 @@ fn try_add_character(c: char, obj: &mut Vec<char>) -> Option<bool> {
             } else {
                 return Some(false);
             }
-        },
+        }
         2 => {
             if c == 'l' {
                 obj.push(c);
@@ -72,7 +74,7 @@ fn try_add_character(c: char, obj: &mut Vec<char>) -> Option<bool> {
             } else {
                 return Some(false);
             }
-        },
+        }
         3 => {
             if c == '(' {
                 obj.push(c);
@@ -80,7 +82,7 @@ fn try_add_character(c: char, obj: &mut Vec<char>) -> Option<bool> {
             } else {
                 return Some(false);
             }
-        },
+        }
         4 => {
             if c.is_digit(10) {
                 obj.push(c);
@@ -88,23 +90,25 @@ fn try_add_character(c: char, obj: &mut Vec<char>) -> Option<bool> {
             } else {
                 return Some(false);
             }
-        },
-        _ => ()
+        }
+        _ => (),
     }
-    
+
     if c.is_digit(10) {
         if *obj.last().unwrap() == ',' {
             obj.push(c);
             return None;
         }
         // todo is number too big?
-        if !obj[obj.len() - 2].is_digit(10) && obj[obj.len() - 2].is_digit(10) && obj[obj.len() - 1].is_digit(10) {
+        if !obj[obj.len() - 2].is_digit(10)
+            && obj[obj.len() - 2].is_digit(10)
+            && obj[obj.len() - 1].is_digit(10)
+        {
             return Some(false);
         } else {
             obj.push(c);
             return None;
         }
-
     } else if c == ',' {
         let (number_one, number_two) = get_numbers_from_obj(obj);
         if number_two > 0 || number_one == 0 {
@@ -133,9 +137,9 @@ pub fn part1() -> Result<u32, AdventError> {
     for line in contents.lines() {
         for c in line.chars() {
             match try_add_character(c, &mut obj) {
-                Some(true) => increment_total(&mut obj, &mut total),
+                Some(true) => increment_total(&mut obj, &mut total, true),
                 Some(false) => reset_temp_object(&mut obj),
-                None => ()
+                None => (),
             }
         }
     }
@@ -144,5 +148,32 @@ pub fn part1() -> Result<u32, AdventError> {
 }
 
 pub fn part2() -> Result<u32, AdventError> {
-    Ok(0)
+    let contents = fs::read_to_string("./src/input.txt")?;
+    let mut obj: Vec<char> = Vec::new();
+    let mut total: u32 = 0;
+    let mut enabled = true;
+    let mut history: Vec<char> = Vec::with_capacity(7);
+
+    for line in contents.lines() {
+        for c in line.chars() {
+            if history.len() > 6 {
+                history.remove(0);
+            }
+            history.push(c);
+            let history_str: String = history.iter().collect();
+            if history_str.ends_with("do()") {
+                enabled = true;
+            } else if history_str.ends_with("don't()") {
+                enabled = false;
+            }
+
+            match try_add_character(c, &mut obj) {
+                Some(true) => increment_total(&mut obj, &mut total, enabled),
+                Some(false) => reset_temp_object(&mut obj),
+                None => (),
+            }
+        }
+    }
+
+    Ok(total)
 }
